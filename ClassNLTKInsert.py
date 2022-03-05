@@ -11,18 +11,18 @@ class ClassNLTKInsert:
         注意事項：要先確認 資料庫 voo_holding_list 有無資料
     """
 
-    def __init__(self, source_name):
+    def __init__(self):
         """ DB """
-        self.source_name = source_name
         self.db_client = pymongo.MongoClient("mongodb://localhost:27017/")
         self.coll_voo = self.db_client['python_getStockNews']['voo_holding_list']
-        self.coll_original = self.db_client['python_getStockNews']["original_" + source_name]
         self.coll_analyze = self.db_client['python_getStockNews']['analyze_document']
 
-    def run(self):
+    def run(self, p_source):
+
+        coll_original = self.db_client['python_getStockNews']["original_" + p_source]
 
         # 取得全部資料
-        coll_original_data = self.coll_original.find()  # total news
+        coll_original_data = coll_original.find()  # total news
         news_data_list = [row_data for row_data in coll_original_data]
 
         # 反轉list，方便判斷是否已寫進DB
@@ -31,7 +31,7 @@ class ClassNLTKInsert:
         for news_data in news_data_list:
 
             # 判斷“分析資料”是否已經存在DB，存在的話直接exit
-            query_key = {'source': self.source_name, 'news_id': news_data['news_id']}
+            query_key = {'source': p_source, 'news_id': news_data['news_id']}
 
             if self.coll_analyze.find_one(query_key):
                 # data existed
@@ -43,10 +43,10 @@ class ClassNLTKInsert:
                 # 新聞內容
                 news_content_text = ''  # 完整新聞內容
                 news_date = ''  # 時間 yyyy-mm-dd
-                if self.source_name == 'Zacks':
+                if p_source == 'Zacks':
                     news_content_text = news_data['content']
                     news_date = datetime.datetime.strptime(news_data['date'], "%d/%m/%Y").strftime("%Y-%m-%d")
-                elif self.source_name == 'SeekingAlpha':
+                elif p_source == 'SeekingAlpha':
                     content = news_data['content']
                     soup = BeautifulSoup(content, "html.parser")
                     news_content_text = soup.text
@@ -82,7 +82,7 @@ class ClassNLTKInsert:
                 for idx, ticker_list in enumerate(identify_ticker_list):
                     for ticker in ticker_list:
                         insert_data = {
-                            'source': self.source_name,
+                            'source': p_source,
                             'news_id': news_data['news_id'],
                             'date': news_date,
                             'ticker': ticker,
@@ -95,7 +95,7 @@ class ClassNLTKInsert:
                         self.coll_analyze.insert_one(insert_data)
 
                 # for 迴圈執行完後表示該 news_id 資料都已塞進 DB，更新 isTotalNewsIdInsert
-                update_key = {'source': self.source_name, 'news_id': news_data['news_id']}
+                update_key = {'source': p_source, 'news_id': news_data['news_id']}
                 update_value = {'isTotalNewsIdInsert': True}
                 self.coll_analyze.update_many(update_key, {"$set": update_value}, upsert=True)
 
@@ -205,5 +205,5 @@ if __name__ == '__main__':
         SeekingAlpha
         Zacks
     """
-    execute = ClassNLTKInsert('SeekingAlpha')
-    execute.run()
+    execute = ClassNLTKInsert()
+    execute.run('SeekingAlpha')

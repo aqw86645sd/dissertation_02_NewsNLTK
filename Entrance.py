@@ -3,6 +3,7 @@ import yfinance as yf
 import requests
 import re
 import threading
+# import multiprocessing as mp
 from ClassNLTKInsert import ClassNLTKInsert
 
 
@@ -26,15 +27,25 @@ class Entrance:
         self.clean_analyze_document()
 
         """ 取得 original_SeekingAlpha & original_Zacks 並塞進 analyze_document """
-        exe_nltk1 = ClassNLTKInsert('SeekingAlpha')
-        exe_nltk2 = ClassNLTKInsert('Zacks')
+        exe_nltk = ClassNLTKInsert()
+        exe_nltk.run('SeekingAlpha')
+        exe_nltk.run('Zacks')
+
         # 使用執行緒執行
-        p1 = threading.Thread(target=exe_nltk1.run, args=())
-        p2 = threading.Thread(target=exe_nltk2.run, args=())
-        p1.start()
-        p2.start()
-        p1.join()
-        p2.join()
+        # p1 = threading.Thread(target=exe_nltk.run, args=('SeekingAlpha',))
+        # p2 = threading.Thread(target=exe_nltk.run, args=('Zacks',))
+        # p1.start()
+        # p2.start()
+        # p1.join()
+        # p2.join()
+
+        # 使用 multiprocessing
+        # mp1 = mp.Process(target=exe_nltk.run, args=('SeekingAlpha',))
+        # mp2 = mp.Process(target=exe_nltk.run, args=('Zacks',))
+        # mp1.start()
+        # mp2.start()
+        # mp1.join()
+        # mp2.join()
 
         """ 更新各股票資訊 """
         self.update_ticker_data()

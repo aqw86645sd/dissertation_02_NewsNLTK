@@ -35,6 +35,7 @@ class ClassNLTKInsert:
 
             if self.coll_analyze.find_one(query_key):
                 # data existed
+                print('資料已經到達上次更新位置')
                 break
             else:
                 """ 對資料正規劃 """
@@ -78,26 +79,28 @@ class ClassNLTKInsert:
                 # 使用詞性抓出ticker
                 identify_ticker_list = self.identify_ticker_with_pos(total_pos_list)
 
+                insert_data_list = []  # 新增資料list
+                length_sentence = len(identify_ticker_list)  # 總句子數
+
                 # 建立分析資料 to DB
-                for idx, ticker_list in enumerate(identify_ticker_list):
-                    for ticker in ticker_list:
+                for idx1, ticker_list in enumerate(identify_ticker_list):
+                    for idx2, ticker in enumerate(ticker_list):
                         insert_data = {
                             'source': p_source,
                             'news_id': news_data['news_id'],
                             'date': news_date,
                             'ticker': ticker,
-                            'news_sentence': total_lemmatization_list[idx],
+                            'news_sentence': total_lemmatization_list[idx1],
                             'isUpdateTicker': False,
-                            'isUpdateVIXY': False,
-                            'isTotalNewsIdInsert': False
+                            'isUpdateVIXY': False
                         }
 
-                        self.coll_analyze.insert_one(insert_data)
+                        insert_data_list.append(insert_data)
 
-                # for 迴圈執行完後表示該 news_id 資料都已塞進 DB，更新 isTotalNewsIdInsert
-                update_key = {'source': p_source, 'news_id': news_data['news_id']}
-                update_value = {'isTotalNewsIdInsert': True}
-                self.coll_analyze.update_many(update_key, {"$set": update_value}, upsert=True)
+                        if idx1 == length_sentence - 1 and idx2 == len(ticker_list) - 1:
+                            # 該 news_id 資料都彙整成一個 list 一起新增
+                            self.coll_analyze.insert_many(insert_data_list)
+                            print(insert_data_list)
 
     @staticmethod
     def replace_special_word(text):

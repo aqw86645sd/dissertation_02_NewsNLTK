@@ -3,7 +3,6 @@ import yfinance as yf
 import requests
 import re
 import threading
-# import multiprocessing as mp
 from ClassNLTKInsert import ClassNLTKInsert
 
 
@@ -23,29 +22,10 @@ class Entrance:
         """ 更新 VOO 持股到 DB """
         self.reset_voo_holding_list()
 
-        """ 將上次未只新增部分句子的新聞從 analyze_document 刪除 """
-        self.clean_analyze_document()
-
         """ 取得 original_SeekingAlpha & original_Zacks 並塞進 analyze_document """
         exe_nltk = ClassNLTKInsert()
         exe_nltk.run('SeekingAlpha')
         exe_nltk.run('Zacks')
-
-        # 使用執行緒執行
-        # p1 = threading.Thread(target=exe_nltk.run, args=('SeekingAlpha',))
-        # p2 = threading.Thread(target=exe_nltk.run, args=('Zacks',))
-        # p1.start()
-        # p2.start()
-        # p1.join()
-        # p2.join()
-
-        # 使用 multiprocessing
-        # mp1 = mp.Process(target=exe_nltk.run, args=('SeekingAlpha',))
-        # mp2 = mp.Process(target=exe_nltk.run, args=('Zacks',))
-        # mp1.start()
-        # mp2.start()
-        # mp1.join()
-        # mp2.join()
 
         """ 更新各股票資訊 """
         self.update_ticker_data()
@@ -84,11 +64,6 @@ class Entrance:
                 tickerList[idx] = ticker.replace('.', '_')
 
         return tickerList
-
-    def clean_analyze_document(self):
-        """ 將上次未只新增部分句子的新聞從 analyze_document 刪除 """
-        delete_key = {'isTotalNewsIdInsert': False}
-        self.coll_analyze.delete_many(delete_key)
 
     def update_ticker_data(self):
         """
@@ -205,7 +180,60 @@ class Entrance:
                 pass
 
     def update_vixy_data(self):
-        pass
+
+        try:
+            find_update_key = {'isUpdateVIXY': False}
+            analyze_data = self.coll_analyze.find(find_update_key)
+            analyze_data_list = [row_data for row_data in analyze_data]
+
+            if len(analyze_data_list) > 0:
+                """ 抓 VIXY 資料 """
+                ticker_data = yf.Ticker('VIXY')
+                year_data = ticker_data.history(period="1y")  # 一年
+                date_list = [date.strftime('%Y-%m-%d') for date in year_data.index]
+                close_price_list = year_data['Close'].tolist()
+                volumn_list = year_data['Volume'].tolist()
+
+                total_vixy_date_json = {}
+
+                for idx in range(len(date_list)):
+                    input_json = {}
+
+                    deviation_vixy_price = 0
+                    deviation_vixy_volume = 0
+
+                    if idx > 0:
+                        # 當日損益百分比區間誤差(1百分比為一區間)
+                        deviation_vixy_price = round(
+                            (close_price_list[idx] - close_price_list[idx - 1]) / close_price_list[idx - 1] * 100, 0)
+
+                    if idx > 3:
+                        # 當日成交量與前三日平均成交量變化百分比區間誤差(5百分比為一區間)
+                        three_day_average = (volumn_list[idx - 3] + volumn_list[idx - 2] + volumn_list[idx - 1]) / 3
+                        deviation_vixy_volume = round(
+                            (volumn_list[idx] - three_day_average) / three_day_average * 100 / 5, 0)
+
+                    input_json['deviation_vixy_price'] = deviation_vixy_price
+                    input_json['deviation_vixy_volume'] = deviation_vixy_volume
+
+                    total_vixy_date_json[date_list[idx]] = input_json
+
+                """ 將全部資料更新 by date """
+                for p_date in date_list:
+
+                    update_key = {
+                        'date': p_date,
+                        'isUpdateVIXY': False
+                    }
+
+                    update_value = total_vixy_date_json[p_date]
+                    update_value['isUpdateVIXY'] = True
+
+                    self.coll_analyze.update_many(update_key, {"$set": update_value}, upsert=True)
+
+        except Exception as e:
+            print(e)
+            pass
 
 
 if __name__ == '__main__':

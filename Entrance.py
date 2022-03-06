@@ -156,25 +156,19 @@ class Entrance:
 
                         total_ticker_date_json[date_list[idx]] = input_json
 
-                    """ 將全部資料更新 """
-                    for analyze_data in analyze_data_list:
-                        if analyze_data['date'] in date_list:
+                    """ 將全部資料更新 by date """
+                    for p_date in date_list:
+                        update_key = {
+                            'date': p_date,
+                            'ticker': ticker,
+                            'isUpdateTicker': False
+                        }
 
-                            update_key = {'source': analyze_data['source'],
-                                          'news_id': analyze_data['news_id'],
-                                          'date': analyze_data['date'],
-                                          'ticker': analyze_data['ticker'],
-                                          'news_sentence': analyze_data['news_sentence'],
-                                          'isUpdateTicker': False}
+                        update_value = total_ticker_date_json[p_date]
+                        update_value['isUpdateTicker'] = True
 
-                            update_value = total_ticker_date_json[analyze_data['date']]
-                            update_value['isUpdateTicker'] = True
+                        self.coll_analyze.update_many(update_key, {"$set": update_value}, upsert=True)
 
-                            self.coll_analyze.update_one(update_key, {"$set": update_value}, upsert=True)
-
-                        else:
-                            # 假日發的新聞算下一次營業日 todo
-                            pass
             except Exception as e:
                 print(e)
                 pass
@@ -220,7 +214,6 @@ class Entrance:
 
                 """ 將全部資料更新 by date """
                 for p_date in date_list:
-
                     update_key = {
                         'date': p_date,
                         'isUpdateVIXY': False

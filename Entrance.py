@@ -167,7 +167,7 @@ class Entrance:
                         update_value = total_ticker_date_json[p_date]
                         update_value['isUpdateTicker'] = True
 
-                        self.coll_analyze.update_many(update_key, {"$set": update_value}, upsert=True)
+                        self.coll_analyze.update_many(update_key, {"$set": update_value}, upsert=False)
 
             except Exception as e:
                 print(e)
@@ -222,7 +222,7 @@ class Entrance:
                     update_value = total_vixy_date_json[p_date]
                     update_value['isUpdateVIXY'] = True
 
-                    self.coll_analyze.update_many(update_key, {"$set": update_value}, upsert=True)
+                    self.coll_analyze.update_many(update_key, {"$set": update_value}, upsert=False)
 
         except Exception as e:
             print(e)

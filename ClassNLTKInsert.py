@@ -67,7 +67,9 @@ class ClassNLTKInsert:
                 total_token_list = [nltk.tokenize.word_tokenize(sentence) for sentence in sentence_list]
 
                 # Lemmatization (字型還原-簡易版）
-                total_lemmatization_list = []
+                total_lemmatization_list = []  # 完整的句子
+                verb_lemmatization_list = []  # 只有動詞的單字
+
                 for token_list in total_token_list:
                     lemmatization_list = [self.lemmatize(token) for token in token_list]
                     total_lemmatization_list.append(lemmatization_list)
@@ -75,6 +77,16 @@ class ClassNLTKInsert:
                 # POS (詞性標記)
                 total_pos_list = [nltk.pos_tag(lemmatization_list) for lemmatization_list in
                                   total_lemmatization_list]
+
+                # 判斷POS開頭為V的另外儲存
+                for sentence_pos in total_pos_list:
+                    verb_temp_list = []
+
+                    for p_word, p_pos in sentence_pos:
+                        if p_pos[0:1] == 'V':
+                            verb_temp_list.append(p_word)
+
+                    verb_lemmatization_list.append(verb_temp_list)
 
                 # 使用詞性抓出ticker
                 identify_ticker_list = self.identify_ticker_with_pos(total_pos_list)
@@ -91,6 +103,7 @@ class ClassNLTKInsert:
                             'date': news_date,
                             'ticker': ticker,
                             'news_sentence': total_lemmatization_list[idx1],
+                            'news_sentence_verb_only': verb_lemmatization_list[idx1],
                             'isUpdateTicker': False,
                             'isUpdateVIXY': False
                         }

@@ -103,9 +103,7 @@ class ClassNLTKInsert:
                             'date': news_date,
                             'ticker': ticker,
                             'news_sentence': total_lemmatization_list[idx1],
-                            'news_sentence_verb_only': verb_lemmatization_list[idx1]
-                            # 'isUpdateTicker': False,
-                            # 'isUpdateVIXY': False
+                            'news_sentence_with_pos': total_pos_list[idx1]
                         }
 
                         insert_data_list.append(insert_data)

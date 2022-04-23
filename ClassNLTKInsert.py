@@ -6,7 +6,7 @@ import nltk
 
 class ClassNLTKInsert:
     """
-        將 original 的原始新聞資料經過 nltk 及相關資料預處理後塞進 analyze_document
+        將 original 的原始新聞資料經過 nltk 及相關資料預處理後塞進 analyze_news
 
         注意事項：要先確認 資料庫 voo_holding_list 有無資料
     """
@@ -15,7 +15,7 @@ class ClassNLTKInsert:
         """ DB """
         self.db_client = pymongo.MongoClient("mongodb://localhost:27017/")
         self.coll_voo = self.db_client['python_getStockNews']['voo_holding_list']
-        self.coll_analyze = self.db_client['python_getStockNews']['analyze_document']
+        self.coll_analyze = self.db_client['python_getStockNews']['analyze_news']
 
     def run(self, p_source):
 
@@ -103,9 +103,9 @@ class ClassNLTKInsert:
                             'date': news_date,
                             'ticker': ticker,
                             'news_sentence': total_lemmatization_list[idx1],
-                            'news_sentence_verb_only': verb_lemmatization_list[idx1],
-                            'isUpdateTicker': False,
-                            'isUpdateVIXY': False
+                            'news_sentence_verb_only': verb_lemmatization_list[idx1]
+                            # 'isUpdateTicker': False,
+                            # 'isUpdateVIXY': False
                         }
 
                         insert_data_list.append(insert_data)

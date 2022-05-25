@@ -97,13 +97,20 @@ class ClassNLTKInsert:
                 # 建立分析資料 to DB
                 for idx1, ticker_list in enumerate(identify_ticker_list):
                     for idx2, ticker in enumerate(ticker_list):
+
+                        # 使用已還原動詞的單字組成完整句子
+                        news_sentence_str = ''
+                        for word in total_lemmatization_list[idx1]:
+                            news_sentence_str += word + ' '
+
                         insert_data = {
                             'source': p_source,
                             'news_id': news_data['news_id'],
                             'date': news_date,
                             'ticker': ticker,
-                            'news_sentence': total_lemmatization_list[idx1],
-                            'news_sentence_with_pos': total_pos_list[idx1]
+                            'news_sentence_str': news_sentence_str,
+                            'news_sentence_list': total_lemmatization_list[idx1],
+                            'news_sentence_with_pos_list': total_pos_list[idx1]
                         }
 
                         insert_data_list.append(insert_data)

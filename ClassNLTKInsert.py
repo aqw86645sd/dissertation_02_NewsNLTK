@@ -66,16 +66,14 @@ class ClassNLTKInsert:
                 # Word Segmentation (斷詞)
                 total_token_list = [nltk.tokenize.word_tokenize(sentence) for sentence in sentence_list]
 
-                # Lemmatization (字型還原-簡易版）
-                total_lemmatization_list = []  # 完整的句子
-
-                for token_list in total_token_list:
-                    lemmatization_list = [self.lemmatize(token) for token in token_list]
-                    total_lemmatization_list.append(lemmatization_list)
-
                 # POS (詞性標記)
-                total_pos_list = [nltk.pos_tag(lemmatization_list) for lemmatization_list in
-                                  total_lemmatization_list]
+                total_pos_list = [nltk.pos_tag(token_list) for token_list in total_token_list]
+
+                # Lemmatization (字型還原）& 大寫字母轉小寫字母
+                total_lemmatization_list = []  # 完整的句子
+                for pos_list in total_pos_list:
+                    lemmatization_list = [self.lemmatize_by_pos(token, pos) for token, pos in pos_list]
+                    total_lemmatization_list.append(lemmatization_list)
 
                 # 使用詞性抓出ticker
                 identify_ticker_list = self.identify_ticker_with_pos(total_pos_list)
@@ -199,15 +197,26 @@ class ClassNLTKInsert:
         return ticker_in_total_list
 
     @staticmethod
-    def lemmatize(word):
+    def lemmatize_by_pos(token, pos):
         """
-        字型還原-只還原動詞
-        :param word: 單字
+        字型還原 ＆ 大寫轉小寫
+        :param token: 單字
+        :param pos: 詞性
         :return:
         """
+        word = token.lower()
+
         lemmatizer = nltk.stem.wordnet.WordNetLemmatizer()
-        lemma = lemmatizer.lemmatize(word, 'v')
-        return lemma
+        if pos.startswith('J'):
+            return lemmatizer.lemmatize(word, 'a')
+        elif pos.startswith('V'):
+            return lemmatizer.lemmatize(word, 'v')
+        elif pos.startswith('N'):
+            return lemmatizer.lemmatize(word, 'n')
+        elif pos.startswith('R'):
+            return lemmatizer.lemmatize(word, 'r')
+        else:
+            return word
 
 
 if __name__ == '__main__':

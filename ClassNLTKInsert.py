@@ -81,6 +81,12 @@ class ClassNLTKInsert:
                 insert_data_list = []  # 新增資料list
                 length_sentence = len(identify_ticker_list)  # 總句子數
 
+                """
+                    sequence 邏輯
+                    日期(8碼) + news_id(向左捕0到9碼) + sentence_seq (單一新聞內容中句子的seq:向左捕0到6碼)  
+                """
+                sentence_seq = 0
+
                 # 建立分析資料 to DB
                 for idx1, ticker_list in enumerate(identify_ticker_list):
                     for idx2, ticker in enumerate(ticker_list):
@@ -91,6 +97,7 @@ class ClassNLTKInsert:
                             news_sentence_str += word + ' '
 
                         insert_data = {
+                            'sequence': news_date.replace('-', '') + news_data['news_id'].zfill(9) + str(sentence_seq).zfill(6),
                             'source': p_source,
                             'news_id': news_data['news_id'],
                             'date': news_date,
@@ -101,6 +108,8 @@ class ClassNLTKInsert:
                         }
 
                         insert_data_list.append(insert_data)
+
+                        sentence_seq += 1  # seq加一
 
                         if idx1 == length_sentence - 1 and idx2 == len(ticker_list) - 1:
                             # 該 news_id 資料都彙整成一個 list 一起新增

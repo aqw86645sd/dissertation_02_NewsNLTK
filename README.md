@@ -1,4 +1,4 @@
-# dissertation_02_DataNormalization
+# dissertation_02_NewsNLTK
 論文-新聞資料預處理 (python)
 
 1. 特殊字符移除

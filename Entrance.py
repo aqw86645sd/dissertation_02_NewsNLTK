@@ -12,7 +12,6 @@ class Entrance:
         self.coll_voo = self.db_client['python_getStockNews']['voo_holding_list']
         self.coll_analyze = self.db_client['python_getStockNews']['analyze_news']
 
-
     def run(self):
 
         """ 更新 VOO 持股到 DB """
@@ -20,9 +19,8 @@ class Entrance:
 
         """ 取得 original_SeekingAlpha & original_Zacks 並塞進 analyze_news """
         exe_nltk = ClassNLTKInsert()
-        exe_nltk.run('SeekingAlpha')
+        # exe_nltk.run('SeekingAlpha')
         exe_nltk.run('Zacks')
-
 
     def reset_voo_holding_list(self):
         """
@@ -50,9 +48,9 @@ class Entrance:
             tickerList = re.findall(r'etf\\\/(.*?)\\', r.text)
 
         # 針對有 dot 符號的做處理
-        for idx, ticker in enumerate(tickerList):
-            if '.' in ticker:
-                tickerList[idx] = ticker.replace('.', '_')
+        # for idx, ticker in enumerate(tickerList):
+        #     if '.' in ticker:
+        #         tickerList[idx] = ticker.replace('.', '_')
 
         return tickerList
 

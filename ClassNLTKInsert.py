@@ -130,7 +130,7 @@ class ClassNLTKInsert:
         text = text.replace("No. ", "No.")
 
         # 特殊 ticker
-        text = text.replace("BRK.B", "BRK_B")
+        # text = text.replace("BRK.B", "BRK_B")
 
         return text
 
